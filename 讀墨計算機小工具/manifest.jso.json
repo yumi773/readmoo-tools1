@@ -1,0 +1,15 @@
+{
+  "name": "讀墨折扣比價助手",
+  "short_name": "讀墨比價",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f8f7f2",
+  "theme_color": "#b3a58e",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3145/3145765.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
