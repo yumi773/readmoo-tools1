@@ -190,6 +190,7 @@
         if (currentInput === "0") currentInput = n;
         else if (currentInput.length < 6) currentInput += n;
         update();
+		calculate(); // 新增：按下數字立即計算
     }
 
     function cls() { 
@@ -203,13 +204,21 @@
         currentInput = currentInput.slice(0, -1); 
         if (currentInput === "") currentInput = "0"; 
         update(); 
+		calculate(); // 新增：刪除數字立即計算
     }
 
     function update() { document.getElementById('displayVal').innerText = currentInput; }
 
     function calculate() {
         const p = parseInt(currentInput);
-        if (p === 0) return;
+    
+    	// 如果數字是 0，就顯示初始畫面並隱藏結果
+    	if (p === 0 || isNaN(p)) {
+        	document.getElementById('initInfo').style.display = 'block';
+        	document.getElementById('results').style.display = 'none';
+        	document.getElementById('tooltip').style.display = 'none';
+        	return;
+    	}
 
         document.getElementById('initInfo').style.display = 'none';
         document.getElementById('results').style.display = 'grid';
