@@ -227,11 +227,15 @@
             { name: "原價", threshold: 0, calc: (p) => p, desc: "無折扣" }
         ];
 
-        let processed = schemes.map(s => {
-            const isActive = p >= s.threshold;
-            const finalPrice = isActive ? s.calc(p) : p;
-            return { ...s, isActive, finalPrice, save: p - finalPrice };
-        });
+        // 核心改動：先 filter 掉未達門檻的項目
+        let processed = schemes
+            .map(s => ({
+                ...s,
+                isActive: p >= s.threshold,
+                finalPrice: p >= s.threshold ? s.calc(p) : p,
+                save: p - (p >= s.threshold ? s.calc(p) : p)
+            }))
+            .filter(s => s.isActive); // 只保留符合門檻的
 
         processed.sort((a, b) => (a.finalPrice - b.finalPrice));
 
