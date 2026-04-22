@@ -40,6 +40,15 @@
             transition: 0.3s;
         }
 
+	/* 切換按鈕樣式 */
+        .theme-switch-wrap { position: fixed; top: 20px; right: 20px; z-index: 100; }
+        .theme-btn {
+            background: var(--app-bg); border: 1px solid var(--gold);
+            color: var(--gold); border-radius: 20px;
+            padding: 6px 15px; cursor: pointer; font-size: 0.8rem;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
         .app-container {
             width: 100%; max-width: 450px;
             background-color: var(--app-bg);
@@ -130,6 +139,10 @@
 </head>
 <body>
 
+<div class="theme-switch-wrap">
+    <button class="theme-btn" onclick="toggleTheme()">◐</button>
+</div>
+
 <div class="app-container">
     <div class="display-area">
         <div class="label">書本售價</div>
@@ -160,6 +173,13 @@
 <script>
     let currentInput = "0";
     const COST_PER_POINT = 166.5;
+
+    // 主題切換函式
+    function toggleTheme() {
+        const body = document.body;
+        const current = body.getAttribute('data-theme');
+        body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
 
     function press(n) {
         if (currentInput === "0") currentInput = n;
