@@ -9,10 +9,10 @@
             --page-bg: #e8e6df;
             --app-bg: #f8f7f2;
             --display-bg: #f2f1eb;
-            --key-bg: #d6c9c7; /* 指定的淺色按鈕顏色 */ 
+            --key-bg: #d6c9c7; 
             --key-text: #ffffff;
             --gold: #b3a58e;
-            --milktea: #917c79; /* 計算按鈕顏色 */
+            --milktea: #917c79; 
             --text-main: #6b6a66;
             --card-bg: #f2f1eb;
             --shadow: rgba(0,0,0,0.1);
@@ -40,14 +40,6 @@
             transition: 0.3s;
         }
 
-        .theme-switch-wrap { position: fixed; top: 20px; right: 20px; z-index: 100; }
-        .theme-btn {
-            background: var(--app-bg); border: 1px solid var(--gold);
-            color: var(--gold); border-radius: 20px;
-            padding: 6px 15px; cursor: pointer; font-size: 0.8rem;
-            box-shadow: 0 2px 10px var(--shadow);
-        }
-
         .app-container {
             width: 100%; max-width: 450px;
             background-color: var(--app-bg);
@@ -57,7 +49,6 @@
             border: 8px solid var(--display-bg);
         }
 
-	/* --- 1. 金額顯示區 (Display) --- */
         .display-area {
             background-color: var(--display-bg);
             border-radius: 20px; padding: 25px;
@@ -67,164 +58,140 @@
         .display-area .price-symbol { color: var(--gold); font-size: 1.8rem; margin-right: 5px; }
         .display-area .price-val { color: var(--text-main); font-size: 4.5rem; font-weight: 700; }
 
-	/* --- 2. 數字鍵盤 (Keypad) --- */
+        /* --- 鍵盤區域：使用地圖佈局確保不會亂掉 --- */
         .keypad {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 12px; margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 60px);
+            gap: 12px;
+            margin-bottom: 25px;
+            grid-template-areas: 
+                "n7 n8 n9 btnC"
+                "n4 n5 n6 btnC"
+                "n1 n2 n3 btnC"
+                "n0 n00 bk btnC";
         }
+
         .key {
             background-color: var(--key-bg); color: var(--key-text);
-            border: none; border-radius: 12px; height: 60px; 
-            font-size: 1.5rem; cursor: pointer; font-weight: 500;
+            border: none; border-radius: 12px;
+            font-size: 1.5rem; cursor: pointer; font-weight: 600;
             transition: transform 0.1s;
         }
         .key:active { transform: scale(0.95); opacity: 0.8; }
 
-	/* 特殊按鈕 */
-        .key-c { color: var(--milktea); background-color: var(--display-bg); font-weight: bold; border: 1px solid var(--key-bg); }
-        .key-calc { 
-            grid-row: span 2; height: 132px;
-            background-color: var(--milktea); color: white;
-            font-size: 1.2rem;
+        /* 綁定按鈕到地圖位置 */
+        .key-n7 { grid-area: n7; } .key-n8 { grid-area: n8; } .key-n9 { grid-area: n9; }
+        .key-n4 { grid-area: n4; } .key-n5 { grid-area: n5; } .key-n6 { grid-area: n6; }
+        .key-n1 { grid-area: n1; } .key-n2 { grid-area: n2; } .key-n3 { grid-area: n3; }
+        .key-n0 { grid-area: n0; } .key-n00 { grid-area: n00; } .key-bk { grid-area: bk; }
+        
+        .key-c { 
+            grid-area: btnC; 
+            height: 100%;
+            background-color: var(--milktea) !important;
+            font-size: 2rem;
+            border-radius: 15px;
         }
 
+        /* --- 結果區域：強制九宮格 --- */
         .results-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-            display: none;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            display: none; /* 初始隱藏 */
         }
 
-	/* --- 3. 折扣卡片區 (Coupon Grid) --- */
         .coupon-card {
             background-color: var(--card-bg); border-radius: 15px;
-            padding: 18px 5px; text-align: center; border: 1.5px solid transparent;
+            padding: 15px 5px; text-align: center; border: 1.5px solid transparent;
             display: flex; flex-direction: column; justify-content: center;
             transition: 0.3s;
+            min-width: 0;
         }
         
         .coupon-card.best { border-color: var(--gold); position: relative; }
-        .coupon-card.disabled { opacity: 0.4; filter: grayscale(1); }
-        
         .best-tag {
             font-size: 0.6rem; color: var(--gold);
             border: 1px solid var(--gold); border-radius: 10px;
-            padding: 2px 8px; align-self: center; margin-bottom: 8px;
+            padding: 2px 8px; align-self: center; margin-bottom: 5px;
         }
 
-        .coupon-name { font-size: 0.85rem; color: var(--gold); margin-bottom: 8px; font-weight: bold; }
-        .coupon-price { font-size: 1.8rem; color: var(--text-main); font-weight: bold; margin-bottom: 5px; }
-        .coupon-save { font-size: 0.7rem; color: var(--gold); margin-bottom: 4px; height: 1rem; }
-        .coupon-desc { font-size: 0.6rem; color: var(--text-main); opacity: 0.7; line-height: 1.2; }
+        .coupon-name { font-size: 0.75rem; color: var(--gold); font-weight: bold; }
+        .coupon-price { font-size: 1.4rem; color: var(--text-main); font-weight: bold; }
+        .coupon-save { font-size: 0.7rem; color: var(--gold); height: 1rem; }
+        .coupon-desc { font-size: 0.6rem; color: var(--text-main); opacity: 0.7; }
 
-        .tooltip-area {
-            margin-top: 25px; padding-top: 20px;
-            border-top: 1px solid var(--gold);
-            display: none;
-        }
-        .tooltip-text {
-            color: var(--text-main); font-size: 0.85rem; line-height: 1.6;
-            padding-left: 15px; border-left: 3px solid var(--milktea);
-        }
-
-        .init-view { text-align: center; color: var(--gold); margin-top: 50px; }
-        .init-icon { font-size: 2.5rem; opacity: 0.4; margin-bottom: 15px; display: block; }
+        .tooltip-area { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--gold); display: none; }
+        .tooltip-text { color: var(--text-main); font-size: 0.85rem; border-left: 3px solid var(--milktea); padding-left: 10px; }
+        .init-view { text-align: center; color: var(--gold); margin-top: 30px; }
     </style>
 </head>
 <body>
 
-<div class="theme-switch-wrap">
-    <button class="theme-btn" onclick="toggleTheme()">◐</button>
-</div>
-
 <div class="app-container">
     <div class="display-area">
         <div class="label">書本售價</div>
-        <div>
-            <span class="price-symbol">$</span>
-            <span id="displayVal" class="price-val">0</span>
-        </div>
+        <div><span class="price-symbol">$</span><span id="displayVal" class="price-val">0</span></div>
     </div>
 
     <div class="keypad">
-        <button class="key" onclick="press('7')">7</button>
-        <button class="key" onclick="press('8')">8</button>
-        <button class="key" onclick="press('9')">9</button>
-        <button class="key" style="color: var(--gold);" onclick="back()">⌫</button>
-
-        <button class="key" onclick="press('4')">4</button>
-        <button class="key" onclick="press('5')">5</button>
-        <button class="key" onclick="press('6')">6</button>
+        <button class="key key-n7" onclick="press('7')">7</button>
+        <button class="key key-n8" onclick="press('8')">8</button>
+        <button class="key key-n9" onclick="press('9')">9</button>
+        <button class="key key-n4" onclick="press('4')">4</button>
+        <button class="key key-n5" onclick="press('5')">5</button>
+        <button class="key key-n6" onclick="press('6')">6</button>
+        <button class="key key-n1" onclick="press('1')">1</button>
+        <button class="key key-n2" onclick="press('2')">2</button>
+        <button class="key key-n3" onclick="press('3')">3</button>
+        <button class="key key-n0" onclick="press('0')">0</button>
+        <button class="key key-n00" onclick="press('00')">00</button>
+        <button class="key key-bk" style="color: var(--gold);" onclick="back()">⌫</button>
         <button class="key key-c" onclick="cls()">C</button>
-
-        <button class="key" onclick="press('1')">1</button>
-        <button class="key" onclick="press('2')">2</button>
-        <button class="key" onclick="press('3')">3</button>
-        <button class="key key-calc" onclick="calculate()">計算</button>
-
-        <button class="key" onclick="press('0')">0</button>
-        <button class="key" onclick="press('00')">00</button>
     </div>
 
-    <div id="initInfo" class="init-view">
-        <span class="init-icon">📖</span>
-        <div style="font-size: 0.9rem; letter-spacing: 1px;">輸入書價，按「計算」看結果</div>
-    </div>
-
+    <div id="initInfo" class="init-view">點擊數字即時計算</div>
     <div id="results" class="results-grid"></div>
-
-    <div id="tooltip" class="tooltip-area">
-        <div id="bestNote" class="tooltip-text"></div>
-    </div>
+    <div id="tooltip" class="tooltip-area"><div id="bestNote" class="tooltip-text"></div></div>
 </div>
 
 <script>
     let currentInput = "0";
-    const COST_PER_POINT = 166.5; // 每點領書額度成本
-
-    function toggleTheme() {
-        const body = document.body;
-        const current = body.getAttribute('data-theme');
-        body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-    }
+    const COST_PER_POINT = 166.5;
 
     function press(n) {
         if (currentInput === "0") currentInput = n;
         else if (currentInput.length < 6) currentInput += n;
         update();
-		calculate(); // 新增：按下數字立即計算
+        calculate(); // 即時計算
     }
 
-    function cls() { 
-        currentInput = "0"; update(); 
-        document.getElementById('results').style.display = 'none'; 
-        document.getElementById('tooltip').style.display = 'none'; 
-        document.getElementById('initInfo').style.display = 'block'; 
+    function back() {
+        currentInput = currentInput.slice(0, -1);
+        if (currentInput === "") currentInput = "0";
+        update();
+        calculate(); // 即時計算
     }
 
-    function back() { 
-        currentInput = currentInput.slice(0, -1); 
-        if (currentInput === "") currentInput = "0"; 
-        update(); 
-		calculate(); // 新增：刪除數字立即計算
+    function cls() {
+        currentInput = "0"; update();
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('tooltip').style.display = 'none';
+        document.getElementById('initInfo').style.display = 'block';
     }
 
     function update() { document.getElementById('displayVal').innerText = currentInput; }
 
     function calculate() {
         const p = parseInt(currentInput);
-    
-    	// 如果數字是 0，就顯示初始畫面並隱藏結果
-    	if (p === 0 || isNaN(p)) {
-        	document.getElementById('initInfo').style.display = 'block';
-        	document.getElementById('results').style.display = 'none';
-        	document.getElementById('tooltip').style.display = 'none';
-        	return;
-    	}
+        if (p === 0 || isNaN(p)) { cls(); return; }
 
         document.getElementById('initInfo').style.display = 'none';
-        document.getElementById('results').style.display = 'grid';
+        document.getElementById('results').style.display = 'grid'; // 強制九宮格顯示
         document.getElementById('tooltip').style.display = 'block';
 
-        // 領書額度：(含)250元以下 1 點，超過每 250 元進位 1 點
         const pointsNeeded = Math.ceil(p / 250);
         const creditCost = pointsNeeded * COST_PER_POINT;
 
@@ -243,32 +210,15 @@
         let processed = schemes.map(s => {
             const isActive = p >= s.threshold;
             const finalPrice = isActive ? s.calc(p) : p;
-            return {
-                ...s,
-                isActive,
-                finalPrice,
-                save: p - finalPrice
-            };
+            return { ...s, isActive, finalPrice, save: p - finalPrice };
         });
 
-        processed.sort((a, b) => {
-            if (a.isActive !== b.isActive) return b.isActive - a.isActive;
-            
-            // 邏輯優化：書價 200(含) 以下時，優先推薦「不限額折50」
-            if (p <= 200) {
-                if (a.id === "unlimited50") return -1;
-                if (b.id === "unlimited50") return 1;
-            }
-            
-            return a.finalPrice - b.finalPrice;
-        });
+        processed.sort((a, b) => (a.finalPrice - b.finalPrice));
 
         const resDiv = document.getElementById('results');
         resDiv.innerHTML = processed.map((s, i) => {
             const isBest = s.isActive && i === 0;
-            // 格式化價格：領書額度若有小數點則顯示，折價券則為整數
-            const priceLabel = s.id === "credit" ? s.finalPrice.toString() : s.finalPrice;
-            
+            const priceLabel = s.id === "credit" ? s.finalPrice.toFixed(0) : s.finalPrice;
             return `
                 <div class="coupon-card ${isBest ? 'best' : ''} ${!s.isActive ? 'disabled' : ''}">
                     ${isBest ? '<span class="best-tag">最划算</span>' : ''}
@@ -281,14 +231,8 @@
         }).join('');
 
         const best = processed.find(s => s.isActive);
-        let note = best ? `${best.name}最划算，換算成本約 $${best.finalPrice}。` : "";
-        if (p <= 50) note += " 金額在 $50 以下，用券直接 $0 領書！";
-        if (pointsNeeded > 1) note += ` 本書售價較高，需消耗 ${pointsNeeded} 點領書額度。`;
-        
-        document.getElementById('bestNote').innerText = note;
+        document.getElementById('bestNote').innerText = best ? `${best.name}最划算，換算成本約 $${best.finalPrice}。` : "";
     }
-
 </script>
-
 </body>
 </html>
