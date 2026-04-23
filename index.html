@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣優惠計算機(單本)</title>
+    <title>Readmoo折扣優惠計算機(單本) 2.3</title>
     <style>
         :root {
             --page-bg: #e8e6df;
@@ -40,7 +40,6 @@
             transition: 0.3s;
         }
 
-	/* 切換按鈕樣式 */
         .theme-switch-wrap { position: fixed; top: 20px; right: 20px; z-index: 100; }
         .theme-btn {
             background: var(--app-bg); border: 1px solid var(--gold);
@@ -67,7 +66,6 @@
         .display-area .price-symbol { color: var(--gold); font-size: 1.8rem; margin-right: 5px; }
         .display-area .price-val { color: var(--text-main); font-size: 4.5rem; font-weight: 700; }
 
-        /* --- 鍵盤區域：使用地圖佈局確保不會亂掉 --- */
         .keypad {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -89,7 +87,6 @@
         }
         .key:active { transform: scale(0.95); opacity: 0.8; }
 
-        /* 綁定按鈕到地圖位置 */
         .key-n7 { grid-area: n7; } .key-n8 { grid-area: n8; } .key-n9 { grid-area: n9; }
         .key-n4 { grid-area: n4; } .key-n5 { grid-area: n5; } .key-n6 { grid-area: n6; }
         .key-n1 { grid-area: n1; } .key-n2 { grid-area: n2; } .key-n3 { grid-area: n3; }
@@ -103,13 +100,12 @@
             border-radius: 15px;
         }
 
-        /* --- 結果區域：強制九宮格 --- */
         .results-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             margin-top: 10px;
-            display: none; /* 初始隱藏 */
+            display: none; 
         }
 
         .coupon-card {
@@ -173,8 +169,8 @@
 <script>
     let currentInput = "0";
     const COST_PER_POINT = 166.5;
+    const MAX_CREDITS = 4;
 
-    // 主題切換函式
     function toggleTheme() {
         const body = document.body;
         const current = body.getAttribute('data-theme');
@@ -185,14 +181,14 @@
         if (currentInput === "0") currentInput = n;
         else if (currentInput.length < 6) currentInput += n;
         update();
-        calculate(); // 即時計算
+        calculate();
     }
 
     function back() {
         currentInput = currentInput.slice(0, -1);
         if (currentInput === "") currentInput = "0";
         update();
-        calculate(); // 即時計算
+        calculate();
     }
 
     function cls() {
@@ -209,53 +205,75 @@
         if (p === 0 || isNaN(p)) { cls(); return; }
 
         document.getElementById('initInfo').style.display = 'none';
-        document.getElementById('results').style.display = 'grid'; // 強制九宮格顯示
+        document.getElementById('results').style.display = 'grid';
         document.getElementById('tooltip').style.display = 'block';
 
         const pointsNeeded = Math.ceil(p / 250);
         const creditCost = pointsNeeded * COST_PER_POINT;
 
+        // priority 越小越優先顯示
         const schemes = [
-            { id: "unlimited50", name: "不限額折50", threshold: 0, calc: (p) => Math.max(0, p - 50), desc: "不限金額折$50" },
-            { name: "滿250折50", threshold: 250, calc: (p) => p - 50, desc: "滿$250可用" },
-            { name: "滿150折30", threshold: 150, calc: (p) => p - 30, desc: "滿$150可用" },
-            { name: "滿100折25", threshold: 100, calc: (p) => p - 25, desc: "滿$100可用" },
-            { name: "7折券", threshold: 0, calc: (p) => Math.round(p * 0.7), desc: "7折優惠券" },
-            { name: "75折券", threshold: 0, calc: (p) => Math.round(p * 0.75), desc: "3本以上75折" },
-            { name: "8折券", threshold: 0, calc: (p) => Math.round(p * 0.8), desc: "單本8折" },
-            { id: "credit", name: "領書額度", threshold: 0, calc: (p) => creditCost, desc: `消耗 ${pointsNeeded} 點` },
-            { name: "原價", threshold: 0, calc: (p) => p, desc: "無折扣" }
+            { id: "fixed250", name: "滿250折50", threshold: 250, priority: 1, calc: (p) => p - 50, desc: "滿$250可用" },
+            { id: "fixed150", name: "滿150折30", threshold: 150, priority: 1, calc: (p) => p - 30, desc: "滿$150可用" },
+            { id: "fixed100", name: "滿100折25", threshold: 100, priority: 1, calc: (p) => p - 25, desc: "滿$100可用" },
+            { id: "unlimited50", name: "不限額折50", threshold: 0, priority: 2, calc: (p) => Math.max(0, p - 50), desc: "不限金額折$50" },
+            { id: "off70", name: "7折券", threshold: 0, priority: 3, calc: (p) => Math.round(p * 0.7), desc: "7折優惠券" },
+            { id: "off75", name: "75折券", threshold: 0, priority: 3, calc: (p) => Math.round(p * 0.75), desc: "3本以上75折" },
+            { id: "off80", name: "8折券", threshold: 0, priority: 3, calc: (p) => Math.round(p * 0.8), desc: "單本8折" },
+            { 
+                id: "credit", 
+                name: "領書額度", 
+                threshold: 0, 
+                priority: 3,
+                isValid: pointsNeeded <= MAX_CREDITS, 
+                calc: (p) => creditCost, 
+                desc: `消耗 ${pointsNeeded} 點` 
+            },
+            { id: "original", name: "原價", threshold: 0, priority: 10, calc: (p) => p, desc: "無折扣" }
         ];
 
-        // 核心改動：先 filter 掉未達門檻的項目
-        let processed = schemes
-            .map(s => ({
-                ...s,
-                isActive: p >= s.threshold,
-                finalPrice: p >= s.threshold ? s.calc(p) : p,
-                save: p - (p >= s.threshold ? s.calc(p) : p)
-            }))
-            .filter(s => s.isActive); // 只保留符合門檻的
+        let activeSchemes = schemes
+            .map(s => {
+                const isActive = p >= s.threshold && (s.id !== 'credit' || s.isValid);
+                return {
+                    ...s,
+                    isActive: isActive,
+                    finalPrice: isActive ? s.calc(p) : p,
+                    save: p - (isActive ? s.calc(p) : p)
+                };
+            })
+            .filter(s => s.isActive);
 
-        processed.sort((a, b) => (a.finalPrice - b.finalPrice));
+        // 處理相同價格的去重，會依照上述 schemes 裡的 priority 順序保留
+        let uniqueSchemes = [];
+        activeSchemes.sort((a, b) => a.priority - b.priority); 
+        
+        activeSchemes.forEach(current => {
+            const exists = uniqueSchemes.find(item => item.finalPrice === current.finalPrice);
+            if (!exists) {
+                uniqueSchemes.push(current);
+            }
+        });
+
+        uniqueSchemes.sort((a, b) => a.finalPrice - b.finalPrice);
 
         const resDiv = document.getElementById('results');
-        resDiv.innerHTML = processed.map((s, i) => {
-            const isBest = s.isActive && i === 0;
+        resDiv.innerHTML = uniqueSchemes.map((s, i) => {
+            const isBest = i === 0;
             const priceLabel = s.id === "credit" ? s.finalPrice.toFixed(0) : s.finalPrice;
             return `
-                <div class="coupon-card ${isBest ? 'best' : ''} ${!s.isActive ? 'disabled' : ''}">
+                <div class="coupon-card ${isBest ? 'best' : ''}">
                     ${isBest ? '<span class="best-tag">最划算</span>' : ''}
                     <div class="coupon-name">${s.name}</div>
-                    <div class="coupon-price">$${s.isActive ? priceLabel : '-'}</div>
-                    <div class="coupon-save">${s.isActive && s.save > 0 ? '省 $' + Math.floor(s.save) : ''}</div>
-                    <div class="coupon-desc">${s.isActive ? s.desc : '未達門檻'}</div>
+                    <div class="coupon-price">$${priceLabel}</div>
+                    <div class="coupon-save">${s.save > 0 ? '省 $' + Math.floor(s.save) : ''}</div>
+                    <div class="coupon-desc">${s.desc}</div>
                 </div>
             `;
         }).join('');
 
-        const best = processed.find(s => s.isActive);
-        document.getElementById('bestNote').innerText = best ? `${best.name}最划算，換算成本約 $${best.finalPrice}。` : "";
+        const best = uniqueSchemes[0];
+        document.getElementById('bestNote').innerText = best ? `${best.name}最划算，換算成本約 $${Math.floor(best.finalPrice)}。` : "";
     }
 </script>
 </body>
