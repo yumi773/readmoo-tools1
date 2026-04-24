@@ -265,9 +265,9 @@
             { id: "fixed150", name: "滿150折30", threshold: 150, priority: 1, calc: (p) => p - 30, desc: "滿$150可用" },
             { id: "fixed100", name: "滿100折25", threshold: 100, priority: 1, calc: (p) => p - 25, desc: "滿$100可用" },
             { id: "unlimited50", name: "不限額折50", threshold: 0, priority: 2, calc: (p) => Math.max(0, p - 50), desc: "不限金額折$50" },
-            { id: "off70", name: "7折券", threshold: 0, priority: 3, calc: (p) => Math.round(p * 0.7), desc: "7折優惠券" },
-            { id: "off75", name: "75折券", threshold: 0, priority: 3, calc: (p) => Math.round(p * 0.75), desc: "3本以上75折" },
-            { id: "off80", name: "8折券", threshold: 0, priority: 3, calc: (p) => Math.round(p * 0.8), desc: "單本8折" },
+            { id: "off70", name: "7折券", threshold: 0, priority: 3, calc: (p) => Math.floor(p * 0.7), desc: "7折優惠券" },
+            { id: "off75", name: "75折券", threshold: 0, priority: 3, calc: (p) => Math.floor(p * 0.75), desc: "3本以上75折" },
+            { id: "off80", name: "8折券", threshold: 0, priority: 3, calc: (p) => Math.floor(p * 0.8), desc: "單本8折" },
             { 
                 id: "credit", 
                 name: "領書額度", 
