@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣計算機(單本) 2.1.1</title>
+    <title>Readmoo折扣計算機(單本) 2.1.2</title>
     <style>
         :root {
             --page-bg: #e8e6df;
@@ -36,7 +36,7 @@
             background-color: var(--page-bg);
             margin: 0; padding: 40px 20px;
             display: flex; 
-            flex-direction: column; /* 讓多個 div 垂直排列 */
+            flex-direction: column;
             align-items: center; 
             justify-content: flex-start;
             min-height: 100vh;
@@ -51,7 +51,6 @@
             box-shadow: 0 2px 10px var(--shadow);
         }
 
-        /* 計算機主體容器 */
         .app-container {
             width: 100%; max-width: 450px;
             background-color: var(--app-bg);
@@ -62,10 +61,9 @@
             box-sizing: border-box;
         }
 
-        /* 獨立推廣區塊容器 */
         .promo-container {
             width: 100%; max-width: 450px;
-            margin-top: 20px; /* 與上方計算機的間距 */
+            margin-top: 20px;
             background-color: var(--app-bg);
             border-radius: 20px;
             padding: 20px;
@@ -74,7 +72,6 @@
             box-sizing: border-box;
             border: 2px solid var(--display-bg);
         }
-
 
         .display-area {
             background-color: var(--display-bg);
@@ -151,7 +148,6 @@
         .tooltip-text { color: var(--text-main); font-size: 0.85rem; border-left: 3px solid var(--milktea); padding-left: 10px; }
         .init-view { text-align: center; color: var(--gold); margin-top: 30px; }
 
-	/* 推廣文字與按鈕 */
         .promo-text {
             color: var(--text-main);
             font-size: 0.85rem;
@@ -204,7 +200,7 @@
         <button class="key key-c" onclick="cls()">C</button>
     </div>
 
-    <div id="initInfo" class="init-view">點擊數字即時計算</br>領書額度上限訂為10點</div>
+    <div id="initInfo" class="init-view">點擊數字即時計算</br>領書額度上限訂為10點</br>(滿0.6進位門檻)</div>
     <div id="results" class="results-grid"></div>
     <div id="tooltip" class="tooltip-area"><div id="bestNote" class="tooltip-text"></div></div>
 </div>
@@ -248,6 +244,17 @@
 
     function update() { document.getElementById('displayVal').innerText = currentInput; }
 
+    /**
+     * 核心進位邏輯：
+     * 小數點 >= 0.6 才進位，否則捨去
+     */
+    function customRound(val) {
+        const integerPart = Math.floor(val);
+        const decimalPart = val - integerPart;
+        // 使用 0.59999 避免浮點數精確度問題
+        return decimalPart >= 0.59999 ? integerPart + 1 : integerPart;
+    }
+
     function calculate() {
         const p = parseInt(currentInput);
         if (p === 0 || isNaN(p)) { cls(); return; }
@@ -259,15 +266,14 @@
         const pointsNeeded = Math.ceil(p / 250);
         const creditCost = pointsNeeded * COST_PER_POINT;
 
-        // priority 越小越優先顯示
         const schemes = [
             { id: "fixed250", name: "滿250折50", threshold: 250, priority: 1, calc: (p) => p - 50, desc: "滿$250可用" },
             { id: "fixed150", name: "滿150折30", threshold: 150, priority: 1, calc: (p) => p - 30, desc: "滿$150可用" },
             { id: "fixed100", name: "滿100折25", threshold: 100, priority: 1, calc: (p) => p - 25, desc: "滿$100可用" },
             { id: "unlimited50", name: "不限額折50", threshold: 0, priority: 2, calc: (p) => Math.max(0, p - 50), desc: "不限金額折$50" },
-            { id: "off70", name: "7折券", threshold: 0, priority: 3, calc: (p) => Math.floor(p * 0.7), desc: "7折優惠券" },
-            { id: "off75", name: "75折券", threshold: 0, priority: 3, calc: (p) => Math.floor(p * 0.75), desc: "3本以上75折" },
-            { id: "off80", name: "8折券", threshold: 0, priority: 3, calc: (p) => Math.floor(p * 0.8), desc: "單本8折" },
+            { id: "off70", name: "7折券", threshold: 0, priority: 3, calc: (p) => p * 0.7, desc: "7折優惠券" },
+            { id: "off75", name: "75折券", threshold: 0, priority: 3, calc: (p) => p * 0.75, desc: "3本以上75折" },
+            { id: "off80", name: "8折券", threshold: 0, priority: 3, calc: (p) => p * 0.8, desc: "單本8折" },
             { 
                 id: "credit", 
                 name: "領書額度", 
@@ -283,16 +289,19 @@
         let activeSchemes = schemes
             .map(s => {
                 const isActive = p >= s.threshold && (s.id !== 'credit' || s.isValid);
+                const rawPrice = isActive ? s.calc(p) : p;
+                const finalPrice = customRound(rawPrice);
+                
                 return {
                     ...s,
                     isActive: isActive,
-                    finalPrice: isActive ? s.calc(p) : p,
-                    save: p - (isActive ? s.calc(p) : p)
+                    finalPrice: finalPrice,
+                    save: p - finalPrice
                 };
             })
             .filter(s => s.isActive);
 
-        // 處理相同價格的去重，會依照上述 schemes 裡的 priority 順序保留
+        // 去重與排序邏輯
         let uniqueSchemes = [];
         activeSchemes.sort((a, b) => a.priority - b.priority); 
         
@@ -308,20 +317,19 @@
         const resDiv = document.getElementById('results');
         resDiv.innerHTML = uniqueSchemes.map((s, i) => {
             const isBest = i === 0;
-            const priceLabel = s.id === "credit" ? s.finalPrice.toFixed(0) : s.finalPrice;
             return `
                 <div class="coupon-card ${isBest ? 'best' : ''}">
                     ${isBest ? '<span class="best-tag">最划算</span>' : ''}
                     <div class="coupon-name">${s.name}</div>
-                    <div class="coupon-price">$${priceLabel}</div>
-                    <div class="coupon-save">${s.save > 0 ? '省 $' + Math.floor(s.save) : ''}</div>
+                    <div class="coupon-price">$${s.finalPrice}</div>
+                    <div class="coupon-save">${s.save > 0 ? '省 $' + s.save : ''}</div>
                     <div class="coupon-desc">${s.desc}</div>
                 </div>
             `;
         }).join('');
 
         const best = uniqueSchemes[0];
-        document.getElementById('bestNote').innerText = best ? `${best.name}最划算，換算成本約 $${Math.floor(best.finalPrice)}。` : "";
+        document.getElementById('bestNote').innerText = best ? `${best.name}最划算，換算成本約 $${best.finalPrice}。` : "";
     }
 </script>
 </body>
