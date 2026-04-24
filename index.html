@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣計算機(單本) 2.1.0</title>
+    <title>Readmoo折扣計算機(單本) 2.1.1</title>
     <style>
         :root {
             --page-bg: #e8e6df;
@@ -35,7 +35,10 @@
             font-family: -apple-system, "Noto Sans CJK TC", sans-serif;
             background-color: var(--page-bg);
             margin: 0; padding: 40px 20px;
-            display: flex; justify-content: center; align-items: flex-start;
+            display: flex; 
+            flex-direction: column; /* 讓多個 div 垂直排列 */
+            align-items: center; 
+            justify-content: flex-start;
             min-height: 100vh;
             transition: 0.3s;
         }
@@ -48,6 +51,7 @@
             box-shadow: 0 2px 10px var(--shadow);
         }
 
+        /* 計算機主體容器 */
         .app-container {
             width: 100%; max-width: 450px;
             background-color: var(--app-bg);
@@ -55,7 +59,22 @@
             padding: 35px 25px;
             box-shadow: 0 20px 50px var(--shadow);
             border: 8px solid var(--display-bg);
+            box-sizing: border-box;
         }
+
+        /* 獨立推廣區塊容器 */
+        .promo-container {
+            width: 100%; max-width: 450px;
+            margin-top: 20px; /* 與上方計算機的間距 */
+            background-color: var(--app-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px var(--shadow);
+            text-align: center;
+            box-sizing: border-box;
+            border: 2px solid var(--display-bg);
+        }
+
 
         .display-area {
             background-color: var(--display-bg);
@@ -131,6 +150,30 @@
         .tooltip-area { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--gold); display: none; }
         .tooltip-text { color: var(--text-main); font-size: 0.85rem; border-left: 3px solid var(--milktea); padding-left: 10px; }
         .init-view { text-align: center; color: var(--gold); margin-top: 30px; }
+
+	/* 推廣文字與按鈕 */
+        .promo-text {
+            color: var(--text-main);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .promo-btn {
+            display: inline-block;
+            background-color: var(--milktea);
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 25px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px var(--shadow);
+        }
+        .promo-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -164,6 +207,11 @@
     <div id="initInfo" class="init-view">點擊數字即時計算</br>領書額度上限訂為10點</div>
     <div id="results" class="results-grid"></div>
     <div id="tooltip" class="tooltip-area"><div id="bestNote" class="tooltip-text"></div></div>
+</div>
+
+<div class="promo-container">
+    <div class="promo-text">喜歡這個計算機的話，<br>歡迎用 AP 連結小小鼓勵我喔❤</div>
+    <a href="https://moo.im/a/clmtBW" target="_blank" class="promo-btn">AP 連結</a>
 </div>
 
 <script>
