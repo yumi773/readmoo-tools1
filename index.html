@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣計算機(單本) 2.1.2</title>
+    <title>Readmoo折扣計算機(單本) 2.2</title>
     <style>
         :root {
             --page-bg: #e8e6df;
@@ -166,10 +166,6 @@
             transition: 0.3s;
             box-shadow: 0 4px 10px var(--shadow);
         }
-        .promo-btn:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-        }
     </style>
 </head>
 <body>
@@ -200,7 +196,7 @@
         <button class="key key-c" onclick="cls()">C</button>
     </div>
 
-    <div id="initInfo" class="init-view">點擊數字即時計算</br>領書額度上限訂為10點</br>(滿0.6進位門檻)</div>
+    <div id="initInfo" class="init-view">點擊數字或鍵盤輸入<br>上限 10 點 (0.6 進位)</div>
     <div id="results" class="results-grid"></div>
     <div id="tooltip" class="tooltip-area"><div id="bestNote" class="tooltip-text"></div></div>
 </div>
@@ -214,6 +210,22 @@
     let currentInput = "0";
     const COST_PER_POINT = 166.5;
     const MAX_CREDITS = 10;
+
+    // 監聽實體鍵盤事件
+    window.addEventListener('keydown', function(e) {
+        // 數字鍵 0-9
+        if (e.key >= '0' && e.key <= '9') {
+            press(e.key);
+        }
+        // 退格鍵
+        else if (e.key === 'Backspace') {
+            back();
+        }
+        // C 或 Escape 或 Delete 清除鍵
+        else if (e.key.toLowerCase() === 'c' || e.key === 'Escape' || e.key === 'Delete') {
+            cls();
+        }
+    });
 
     function toggleTheme() {
         const body = document.body;
@@ -244,14 +256,9 @@
 
     function update() { document.getElementById('displayVal').innerText = currentInput; }
 
-    /**
-     * 核心進位邏輯：
-     * 小數點 >= 0.6 才進位，否則捨去
-     */
     function customRound(val) {
         const integerPart = Math.floor(val);
         const decimalPart = val - integerPart;
-        // 使用 0.59999 避免浮點數精確度問題
         return decimalPart >= 0.59999 ? integerPart + 1 : integerPart;
     }
 
@@ -291,7 +298,6 @@
                 const isActive = p >= s.threshold && (s.id !== 'credit' || s.isValid);
                 const rawPrice = isActive ? s.calc(p) : p;
                 const finalPrice = customRound(rawPrice);
-                
                 return {
                     ...s,
                     isActive: isActive,
@@ -301,15 +307,12 @@
             })
             .filter(s => s.isActive);
 
-        // 去重與排序邏輯
         let uniqueSchemes = [];
         activeSchemes.sort((a, b) => a.priority - b.priority); 
         
         activeSchemes.forEach(current => {
             const exists = uniqueSchemes.find(item => item.finalPrice === current.finalPrice);
-            if (!exists) {
-                uniqueSchemes.push(current);
-            }
+            if (!exists) uniqueSchemes.push(current);
         });
 
         uniqueSchemes.sort((a, b) => a.finalPrice - b.finalPrice);
