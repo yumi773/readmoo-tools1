@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣計算機(單本) 2.2</title>
+    <title>Readmoo折扣計算機(單本) 2.2.1</title>
     <style>
         :root {
             --page-bg: #e8e6df;
@@ -196,7 +196,7 @@
         <button class="key key-c" onclick="cls()">C</button>
     </div>
 
-    <div id="initInfo" class="init-view">點擊數字或鍵盤輸入<br>上限 10 點 (0.6 進位)</div>
+    <div id="initInfo" class="init-view">點擊數字或鍵盤輸入<br>上限 10 點 (0.6 進位門檻)</div>
     <div id="results" class="results-grid"></div>
     <div id="tooltip" class="tooltip-area"><div id="bestNote" class="tooltip-text"></div></div>
 </div>
@@ -211,20 +211,11 @@
     const COST_PER_POINT = 166.5;
     const MAX_CREDITS = 10;
 
-    // 監聽實體鍵盤事件
+    // 鍵盤監聽
     window.addEventListener('keydown', function(e) {
-        // 數字鍵 0-9
-        if (e.key >= '0' && e.key <= '9') {
-            press(e.key);
-        }
-        // 退格鍵
-        else if (e.key === 'Backspace') {
-            back();
-        }
-        // C 或 Escape 或 Delete 清除鍵
-        else if (e.key.toLowerCase() === 'c' || e.key === 'Escape' || e.key === 'Delete') {
-            cls();
-        }
+        if (e.key >= '0' && e.key <= '9') press(e.key);
+        else if (e.key === 'Backspace') back();
+        else if (e.key.toLowerCase() === 'c' || e.key === 'Escape' || e.key === 'Delete') cls();
     });
 
     function toggleTheme() {
@@ -274,23 +265,22 @@
         const creditCost = pointsNeeded * COST_PER_POINT;
 
         const schemes = [
-            { id: "fixed250", name: "滿250折50", threshold: 250, priority: 1, calc: (p) => p - 50, desc: "滿$250可用" },
-            { id: "fixed150", name: "滿150折30", threshold: 150, priority: 1, calc: (p) => p - 30, desc: "滿$150可用" },
-            { id: "fixed100", name: "滿100折25", threshold: 100, priority: 1, calc: (p) => p - 25, desc: "滿$100可用" },
-            { id: "unlimited50", name: "不限額折50", threshold: 0, priority: 2, calc: (p) => Math.max(0, p - 50), desc: "不限金額折$50" },
-            { id: "off70", name: "7折券", threshold: 0, priority: 3, calc: (p) => p * 0.7, desc: "7折優惠券" },
-            { id: "off75", name: "75折券", threshold: 0, priority: 3, calc: (p) => p * 0.75, desc: "3本以上75折" },
-            { id: "off80", name: "8折券", threshold: 0, priority: 3, calc: (p) => p * 0.8, desc: "單本8折" },
+            { id: "fixed250", name: "滿250折50", threshold: 250, calc: (p) => p - 50, desc: "滿$250可用" },
+            { id: "fixed150", name: "滿150折30", threshold: 150, calc: (p) => p - 30, desc: "滿$150可用" },
+            { id: "fixed100", name: "滿100折25", threshold: 100, calc: (p) => p - 25, desc: "滿$100可用" },
+            { id: "unlimited50", name: "不限額折50", threshold: 0, calc: (p) => Math.max(0, p - 50), desc: "不限金額折$50" },
+            { id: "off70", name: "7折券", threshold: 0, calc: (p) => p * 0.7, desc: "7折優惠券" },
+            { id: "off75", name: "75折券", threshold: 0, calc: (p) => p * 0.75, desc: "3本以上75折" },
+            { id: "off80", name: "8折券", threshold: 0, calc: (p) => p * 0.8, desc: "單本8折" },
             { 
                 id: "credit", 
                 name: "領書額度", 
                 threshold: 0, 
-                priority: 3,
                 isValid: pointsNeeded <= MAX_CREDITS, 
                 calc: (p) => creditCost, 
                 desc: `消耗 ${pointsNeeded} 點` 
             },
-            { id: "original", name: "原價", threshold: 0, priority: 10, calc: (p) => p, desc: "無折扣" }
+            { id: "original", name: "原價", threshold: 0, calc: (p) => p, desc: "無折扣" }
         ];
 
         let activeSchemes = schemes
@@ -307,18 +297,11 @@
             })
             .filter(s => s.isActive);
 
-        let uniqueSchemes = [];
-        activeSchemes.sort((a, b) => a.priority - b.priority); 
-        
-        activeSchemes.forEach(current => {
-            const exists = uniqueSchemes.find(item => item.finalPrice === current.finalPrice);
-            if (!exists) uniqueSchemes.push(current);
-        });
-
-        uniqueSchemes.sort((a, b) => a.finalPrice - b.finalPrice);
+        // 排序：最終金額由低到高排列
+        activeSchemes.sort((a, b) => a.finalPrice - b.finalPrice);
 
         const resDiv = document.getElementById('results');
-        resDiv.innerHTML = uniqueSchemes.map((s, i) => {
+        resDiv.innerHTML = activeSchemes.map((s, i) => {
             const isBest = i === 0;
             return `
                 <div class="coupon-card ${isBest ? 'best' : ''}">
@@ -331,7 +314,7 @@
             `;
         }).join('');
 
-        const best = uniqueSchemes[0];
+        const best = activeSchemes[0];
         document.getElementById('bestNote').innerText = best ? `${best.name}最划算，換算成本約 $${best.finalPrice}。` : "";
     }
 </script>
