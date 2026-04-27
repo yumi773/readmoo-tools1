@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣計算機(單本) 2.2.1</title>
+    <title>Readmoo折扣計算機(單本) 2.2.2</title>
     <style>
         :root {
             --page-bg: #e8e6df;
@@ -78,7 +78,50 @@
             border-radius: 20px; padding: 25px;
             text-align: right; margin-bottom: 20px;
         }
-        .display-area .label { color: var(--gold); font-size: 0.9rem; text-align: left; margin-bottom: 10px; font-weight: bold;}
+
+        /* 標題與按鈕的排版容器 */
+        .display-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .display-header .label { 
+            color: var(--gold); 
+            font-size: 0.9rem; 
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* 超連結按鈕樣式 */
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .nav-btn {
+            text-decoration: none;
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            border: 1px solid var(--milktea);
+            transition: 0.2s;
+        }
+        /* 單本按鈕：#917c79底 / #ffffff字 */
+        .btn-single {
+            background-color: var(--milktea);
+            color: #ffffff;
+        }
+        /* 多本按鈕：#ffffff底 / #917c79字 */
+        .btn-multi {
+            background-color: #ffffff;
+            color: var(--milktea);
+        }
+        .nav-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
         .display-area .price-symbol { color: var(--gold); font-size: 1.8rem; margin-right: 5px; }
         .display-area .price-val { color: var(--text-main); font-size: 4.5rem; font-weight: 700; }
 
@@ -176,7 +219,13 @@
 
 <div class="app-container">
     <div class="display-area">
-        <div class="label">書本售價</div>
+        <div class="display-header">
+            <div class="label">書本售價</div>
+            <div class="nav-buttons">
+                <a href="https://yumi773.github.io/readmoo-tools1/" class="nav-btn btn-single">單本</a>
+                <a href="https://yumi773.github.io/readmoo-tools2/" class="nav-btn btn-multi">多本</a>
+            </div>
+        </div>
         <div><span class="price-symbol">$</span><span id="displayVal" class="price-val">0</span></div>
     </div>
 
@@ -271,7 +320,7 @@
             { id: "unlimited50", name: "不限額折50", threshold: 0, calc: (p) => Math.max(0, p - 50), desc: "不限金額折$50" },
             { id: "off70", name: "7折券", threshold: 0, calc: (p) => p * 0.7, desc: "7折優惠券" },
             { id: "off75", name: "75折券", threshold: 0, calc: (p) => p * 0.75, desc: "3本以上75折" },
-            { id: "off80", name: "8折券", threshold: 0, calc: (p) => p * 0.8, desc: "不限金額8折" },
+            { id: "off80", name: "8折券", threshold: 0, calc: (p) => p * 0.8, desc: "單本8折" },
             { 
                 id: "credit", 
                 name: "領書額度", 
@@ -297,7 +346,6 @@
             })
             .filter(s => s.isActive);
 
-        // 排序：最終金額由低到高排列
         activeSchemes.sort((a, b) => a.finalPrice - b.finalPrice);
 
         const resDiv = document.getElementById('results');
