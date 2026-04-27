@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣計算機(單本) 2.2.2</title>
+    <title>Readmoo折扣計算機(單本) 2.2.3</title>
     <style>
         :root {
             --page-bg: #e8e6df;
@@ -31,6 +31,7 @@
             --shadow: rgba(0,0,0,0.4);
         }
 
+
         body {
             font-family: -apple-system, "Noto Sans CJK TC", sans-serif;
             background-color: var(--page-bg);
@@ -48,38 +49,30 @@
             background: var(--app-bg); border: 1px solid var(--gold);
             color: var(--gold); border-radius: 20px;
             padding: 6px 15px; cursor: pointer; font-size: 0.8rem;
-            box-shadow: 0 2px 10px var(--shadow);
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
         }
 
         .app-container {
             width: 100%; max-width: 450px;
             background-color: var(--app-bg);
             border-radius: 40px; 
-            padding: 35px 25px;
+            padding: 35px 25px; /* 稍微縮小內距 */
             box-shadow: 0 20px 50px var(--shadow);
             border: 8px solid var(--display-bg);
             box-sizing: border-box;
         }
 
-        .promo-container {
-            width: 100%; max-width: 450px;
-            margin-top: 20px;
-            background-color: var(--app-bg);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px var(--shadow);
-            text-align: center;
-            box-sizing: border-box;
-            border: 2px solid var(--display-bg);
-        }
-
+        /* 調整顯示區域大小，使其與多本一致 */
         .display-area {
             background-color: var(--display-bg);
             border-radius: 20px; padding: 25px;
             text-align: right; margin-bottom: 20px;
         }
 
-        /* 標題與按鈕的排版容器 */
         .display-header {
             display: flex;
             justify-content: space-between;
@@ -90,41 +83,34 @@
             color: var(--gold); 
             font-size: 0.9rem; 
             font-weight: bold;
-            margin: 0;
         }
 
-        /* 超連結按鈕樣式 */
-        .nav-buttons {
+        .switch-links {
             display: flex;
             gap: 8px;
         }
-        .nav-btn {
-            text-decoration: none;
+        .link-btn {
             font-size: 0.75rem;
             padding: 4px 12px;
             border-radius: 15px;
+            text-decoration: none;
             font-weight: bold;
-            border: 1px solid var(--milktea);
             transition: 0.2s;
+            border: 1px solid var(--milktea);
         }
-        /* 單本按鈕：#917c79底 / #ffffff字 */
-        .btn-single {
-            background-color: var(--milktea);
-            color: #ffffff;
-        }
-        /* 多本按鈕：#ffffff底 / #917c79字 */
-        .btn-multi {
+	.link-single {
             background-color: #ffffff;
             color: var(--milktea);
         }
-        .nav-btn:hover {
-            opacity: 0.8;
-            transform: translateY(-1px);
+        .link-multi {
+            background-color: var(--milktea);
+            color: #ffffff;
         }
+        
+        .display-area .price-symbol { color: var(--gold); font-size: 1.8rem; margin-right: 5px; font-weight: bold; }
+        .display-area .price-val { color: var(--text-main); font-size: 4rem; font-weight: 700; }
 
-        .display-area .price-symbol { color: var(--gold); font-size: 1.8rem; margin-right: 5px; }
-        .display-area .price-val { color: var(--text-main); font-size: 4.5rem; font-weight: 700; }
-
+        /* 鍵盤區域參考多本設定 */
         .keypad {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -140,24 +126,25 @@
 
         .key {
             background-color: var(--key-bg); color: var(--key-text);
-            border: none; border-radius: 12px;
-            font-size: 1.5rem; cursor: pointer; font-weight: 600;
+            border: none; border-radius: 12px; height: 60px;
+            font-size: 1.4rem; cursor: pointer; font-weight: 600;
             transition: transform 0.1s;
         }
-        .key:active { transform: scale(0.95); opacity: 0.8; }
+        .key:active { transform: scale(0.95); opacity: 0.7; }
 
         .key-n7 { grid-area: n7; } .key-n8 { grid-area: n8; } .key-n9 { grid-area: n9; }
         .key-n4 { grid-area: n4; } .key-n5 { grid-area: n5; } .key-n6 { grid-area: n6; }
         .key-n1 { grid-area: n1; } .key-n2 { grid-area: n2; } .key-n3 { grid-area: n3; }
         .key-n0 { grid-area: n0; } .key-n00 { grid-area: n00; } .key-bk { grid-area: bk; }
-        
         .key-c { 
             grid-area: btnC; 
             height: 100%;
             background-color: var(--milktea) !important;
-            font-size: 2rem;
+            font-size: 1.8rem;
             border-radius: 15px;
         }
+
+        .init-view { text-align: center; color: var(--gold); margin-top: 20px; padding: 20px; border: 1px dashed var(--gold); border-radius: 15px;}
 
         .results-grid {
             display: grid;
@@ -169,34 +156,38 @@
 
         .coupon-card {
             background-color: var(--card-bg); border-radius: 15px;
-            padding: 15px 5px; text-align: center; border: 1.5px solid transparent;
+            padding: 12px 5px; text-align: center; border: 1.5px solid transparent;
             display: flex; flex-direction: column; justify-content: center;
             transition: 0.3s;
             min-width: 0;
         }
-        
         .coupon-card.best { border-color: var(--gold); position: relative; }
         .best-tag {
             font-size: 0.6rem; color: var(--gold);
             border: 1px solid var(--gold); border-radius: 10px;
             padding: 2px 8px; align-self: center; margin-bottom: 5px;
         }
-
         .coupon-name { font-size: 0.75rem; color: var(--gold); font-weight: bold; }
-        .coupon-price { font-size: 1.4rem; color: var(--text-main); font-weight: bold; }
+        .coupon-price { font-size: 1.3rem; color: var(--text-main); font-weight: bold; }
         .coupon-save { font-size: 0.7rem; color: var(--gold); height: 1rem; }
         .coupon-desc { font-size: 0.6rem; color: var(--text-main); opacity: 0.7; }
 
         .tooltip-area { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--gold); display: none; }
         .tooltip-text { color: var(--text-main); font-size: 0.85rem; border-left: 3px solid var(--milktea); padding-left: 10px; }
-        .init-view { text-align: center; color: var(--gold); margin-top: 30px; }
 
-        .promo-text {
-            color: var(--text-main);
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-            line-height: 1.4;
+        /* AP 連結區塊樣式 */
+        .promo-container {
+            width: 100%; max-width: 450px;
+            margin-top: 20px;
+            background-color: var(--app-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px var(--shadow);
+            text-align: center;
+            box-sizing: border-box;
+            border: 2px solid var(--display-bg);
         }
+        .promo-text { color: var(--text-main); font-size: 0.85rem; margin-bottom: 12px; line-height: 1.4; }
         .promo-btn {
             display: inline-block;
             background-color: var(--milktea);
@@ -221,12 +212,13 @@
     <div class="display-area">
         <div class="display-header">
             <div class="label">書本售價</div>
-            <div class="nav-buttons">
-                <a href="https://yumi773.github.io/readmoo-tools1/" class="nav-btn btn-single">單本</a>
-                <a href="https://yumi773.github.io/readmoo-tools2/" class="nav-btn btn-multi">多本</a>
+            <div class="switch-links">
+                <a href="https://yumi773.github.io/readmoo-tools1/" class="link-btn link-multi">單本</a>
+                <a href="https://yumi773.github.io/readmoo-tools2/" class="link-btn link-single">多本</a>
             </div>
         </div>
-        <div><span class="price-symbol">$</span><span id="displayVal" class="price-val">0</span></div>
+        <div><span class="price-symbol">$</span>
+	<span id="displayVal" class="price-val">0</span></div>
     </div>
 
     <div class="keypad">
@@ -245,7 +237,9 @@
         <button class="key key-c" onclick="cls()">C</button>
     </div>
 
-    <div id="initInfo" class="init-view">點擊數字或鍵盤輸入</br>領書額度上限訂為10點</br>(滿0.6進位門檻)</div>
+    <div id="initInfo" class="init-view">
+	<div style="font-size: 0.9rem;">點擊數字或鍵盤輸入</br>領書額度上限訂為10點</div>
+    </div>
     <div id="results" class="results-grid"></div>
     <div id="tooltip" class="tooltip-area"><div id="bestNote" class="tooltip-text"></div></div>
 </div>
@@ -260,11 +254,20 @@
     const COST_PER_POINT = 166.5;
     const MAX_CREDITS = 10;
 
-    // 鍵盤監聽
+    // 鍵盤監聽：修正判斷邏輯
     window.addEventListener('keydown', function(e) {
-        if (e.key >= '0' && e.key <= '9') press(e.key);
-        else if (e.key === 'Backspace') back();
-        else if (e.key.toLowerCase() === 'c' || e.key === 'Escape' || e.key === 'Delete') cls();
+        // 數字鍵
+        if (e.key >= '0' && e.key <= '9') {
+            press(e.key);
+        }
+        // 退格鍵
+        else if (e.key === 'Backspace') {
+            back();
+        }
+        // 清除鍵
+        else if (e.key.toLowerCase() === 'c' || e.key === 'Escape' || e.key === 'Delete') {
+            cls();
+        }
     });
 
     function toggleTheme() {
@@ -274,8 +277,12 @@
     }
 
     function press(n) {
-        if (currentInput === "0") currentInput = n;
-        else if (currentInput.length < 6) currentInput += n;
+        // 限制最多 6 位數
+        if (currentInput === "0") {
+            currentInput = n;
+        } else {
+            if (currentInput.length < 6) currentInput += n;
+        }
         update();
         calculate();
     }
@@ -288,23 +295,33 @@
     }
 
     function cls() {
-        currentInput = "0"; update();
+        currentInput = "0"; 
+        update();
         document.getElementById('results').style.display = 'none';
         document.getElementById('tooltip').style.display = 'none';
         document.getElementById('initInfo').style.display = 'block';
     }
 
-    function update() { document.getElementById('displayVal').innerText = currentInput; }
+    function update() { 
+        document.getElementById('displayVal').innerText = currentInput; 
+    }
 
     function customRound(val) {
         const integerPart = Math.floor(val);
         const decimalPart = val - integerPart;
+        // 0.6 進位邏輯
         return decimalPart >= 0.59999 ? integerPart + 1 : integerPart;
     }
 
     function calculate() {
         const p = parseInt(currentInput);
-        if (p === 0 || isNaN(p)) { cls(); return; }
+        if (p === 0 || isNaN(p)) { 
+            // 如果輸入為 0，則回到初始狀態，不顯示結果
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('tooltip').style.display = 'none';
+            document.getElementById('initInfo').style.display = 'block';
+            return; 
+        }
 
         document.getElementById('initInfo').style.display = 'none';
         document.getElementById('results').style.display = 'grid';
@@ -313,6 +330,7 @@
         const pointsNeeded = Math.ceil(p / 250);
         const creditCost = pointsNeeded * COST_PER_POINT;
 
+        // 定義所有優惠方案
         const schemes = [
             { id: "fixed250", name: "滿250折50", threshold: 250, calc: (p) => p - 50, desc: "滿$250可用" },
             { id: "fixed150", name: "滿150折30", threshold: 150, calc: (p) => p - 30, desc: "滿$150可用" },
@@ -332,6 +350,7 @@
             { id: "original", name: "原價", threshold: 0, calc: (p) => p, desc: "無折扣" }
         ];
 
+        // 計算各方案最終金額
         let activeSchemes = schemes
             .map(s => {
                 const isActive = p >= s.threshold && (s.id !== 'credit' || s.isValid);
@@ -346,10 +365,13 @@
             })
             .filter(s => s.isActive);
 
+        // 核心修改：依照金額排序，但不去重（拔掉相同金額篩選機制）
         activeSchemes.sort((a, b) => a.finalPrice - b.finalPrice);
 
         const resDiv = document.getElementById('results');
         resDiv.innerHTML = activeSchemes.map((s, i) => {
+            // 只要是清單中的第一個（最小金額），就標註最划算
+            // 如果有多個方案並列最低價，它們都會顯示，但只有排序首位會帶標籤，或者您可以改成全部最低價都帶標籤
             const isBest = i === 0;
             return `
                 <div class="coupon-card ${isBest ? 'best' : ''}">
@@ -366,5 +388,3 @@
         document.getElementById('bestNote').innerText = best ? `${best.name}最划算，換算成本約 $${best.finalPrice}。` : "";
     }
 </script>
-</body>
-</html>
