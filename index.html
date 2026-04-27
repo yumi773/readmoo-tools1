@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f8f7f2">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣計算機(單本) 2.2.1</title>
+    <title>Readmoo折扣計算機(多本) 2.3.4</title>
     <style>
         :root {
             --page-bg: #e8e6df;
@@ -31,6 +33,11 @@
             --shadow: rgba(0,0,0,0.4);
         }
 
+        [data-theme="dark"] .book-orig {
+            color: #ffffff !important;
+            opacity: 0.7;
+        }
+
         body {
             font-family: -apple-system, "Noto Sans CJK TC", sans-serif;
             background-color: var(--page-bg);
@@ -44,11 +51,25 @@
         }
 
         .theme-switch-wrap { position: fixed; top: 20px; right: 20px; z-index: 100; }
+        
+        .nav-buttons-wrap { 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            z-index: 100; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
         .theme-btn {
             background: var(--app-bg); border: 1px solid var(--gold);
             color: var(--gold); border-radius: 20px;
             padding: 6px 15px; cursor: pointer; font-size: 0.8rem;
-            box-shadow: 0 2px 10px var(--shadow);
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .app-container {
@@ -61,6 +82,134 @@
             box-sizing: border-box;
         }
 
+        .display-area {
+            background-color: var(--display-bg);
+            border-radius: 20px; padding: 25px;
+            text-align: right; margin-bottom: 20px;
+        }
+        .display-area .label { color: var(--gold); font-size: 0.9rem; text-align: left; margin-bottom: 10px; font-weight: bold;}
+        .display-area .price-symbol { color: var(--gold); font-size: 1.8rem; margin-right: 5px; font-weight: bold; }
+        .display-area .price-val { color: var(--text-main); font-size: 4rem; font-weight: 700; }
+
+        .keypad {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 12px; margin-bottom: 25px;
+        }
+        .key {
+            background-color: var(--key-bg); color: var(--key-text);
+            border: none; border-radius: 12px; height: 60px; 
+            font-size: 1.4rem; cursor: pointer; font-weight: 600;
+            transition: opacity 0.1s;
+        }
+        .key:active { opacity: 0.7; }
+        .key-c { color: var(--milktea); background-color: var(--display-bg); border: 1px solid var(--key-bg); }
+        .key-calc { 
+            grid-row: span 2; height: 132px;
+            background-color: var(--milktea); color: white;
+            font-size: 1.1rem;
+        }
+        .key-star { color: #ffffff; font-size: 2rem; }
+
+        .summary-box {
+            background: var(--display-bg);
+            border-radius: 15px; padding: 20px; margin-top: 10px;
+        }
+        .summary-header {
+            color: var(--gold); font-size: 0.9rem; font-weight: bold;
+            margin-bottom: 15px; display: flex; justify-content: space-between;
+        }
+        .summary-notice {
+            color: var(--gold); font-size: 0.85rem;
+            margin-bottom: 15px; font-weight: 550;
+        }
+
+        .book-item {
+            margin-bottom: 15px; padding-bottom: 15px;
+            border-bottom: 1px dashed var(--gold);
+        }
+        .book-top-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .book-orig { font-size: 0.8rem; opacity: 0.6; text-decoration: line-through; color: var(--text-main); }
+        .book-final-price { font-weight: 800; font-size: 1.2rem; color: var(--milktea); }
+        
+        .discount-selector {
+            display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;
+        }
+        .discount-opt {
+            font-size: 0.65rem; padding: 4px 8px; border-radius: 5px;
+            border: 1px solid var(--gold); color: var(--gold); cursor: pointer;
+            transition: 0.2s;
+        }
+        .discount-opt.active {
+            background-color: var(--gold); color: white;
+        }
+        .discount-opt.disabled {
+            opacity: 0.3; border-color: #ccc; color: #ccc; cursor: not-allowed;
+        }
+
+        .remove-btn { color: #cc7a7a; cursor: pointer; margin-left: 10px; font-weight: bold; font-size: 1.2rem;}
+
+        .total-section {
+            margin-top: 15px; padding-top: 15px;
+            border-top: 2px solid var(--gold);
+        }
+        
+        .total-layout {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .total-left {
+            flex: 1;
+        }
+        .total-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+        }
+        
+        .batch-status {
+            font-size: 0.65rem;
+            color: var(--milktea);
+            font-weight: bold;
+            margin-top: 2px;
+        }
+        
+        .batch-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .batch-label {
+            font-size: 0.65rem; color: var(--gold); font-weight: bold;
+        }
+        .batch-select {
+            background: var(--app-bg);
+            border: 1px solid var(--gold);
+            color: var(--text-main);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            padding: 2px 4px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .total-amount-wrap { 
+            margin-bottom: 4px;
+        }
+        .total-label { color: var(--gold); font-weight: bold; margin-right: 5px; font-size: 0.85rem; }
+        .total-symbol { color: var(--gold); font-weight: bold; font-size: 1.2rem; }
+        .total-amount { color: var(--text-main); font-size: 1.8rem; font-weight: 800; }
+        
+        .total-sub-info {
+            font-size: 0.6rem;
+            color: var(--gold);
+            opacity: 0.9;
+        }
+
+        .init-view { text-align: center; color: var(--gold); margin-top: 20px; padding: 20px; border: 1px dashed var(--gold); border-radius: 15px;}
+
         .promo-container {
             width: 100%; max-width: 450px;
             margin-top: 20px;
@@ -72,150 +221,118 @@
             box-sizing: border-box;
             border: 2px solid var(--display-bg);
         }
-
-        .display-area {
-            background-color: var(--display-bg);
-            border-radius: 20px; padding: 25px;
-            text-align: right; margin-bottom: 20px;
-        }
-        .display-area .label { color: var(--gold); font-size: 0.9rem; text-align: left; margin-bottom: 10px; font-weight: bold;}
-        .display-area .price-symbol { color: var(--gold); font-size: 1.8rem; margin-right: 5px; }
-        .display-area .price-val { color: var(--text-main); font-size: 4.5rem; font-weight: 700; }
-
-        .keypad {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(4, 60px);
-            gap: 12px;
-            margin-bottom: 25px;
-            grid-template-areas: 
-                "n7 n8 n9 btnC"
-                "n4 n5 n6 btnC"
-                "n1 n2 n3 btnC"
-                "n0 n00 bk btnC";
-        }
-
-        .key {
-            background-color: var(--key-bg); color: var(--key-text);
-            border: none; border-radius: 12px;
-            font-size: 1.5rem; cursor: pointer; font-weight: 600;
-            transition: transform 0.1s;
-        }
-        .key:active { transform: scale(0.95); opacity: 0.8; }
-
-        .key-n7 { grid-area: n7; } .key-n8 { grid-area: n8; } .key-n9 { grid-area: n9; }
-        .key-n4 { grid-area: n4; } .key-n5 { grid-area: n5; } .key-n6 { grid-area: n6; }
-        .key-n1 { grid-area: n1; } .key-n2 { grid-area: n2; } .key-n3 { grid-area: n3; }
-        .key-n0 { grid-area: n0; } .key-n00 { grid-area: n00; } .key-bk { grid-area: bk; }
-        
-        .key-c { 
-            grid-area: btnC; 
-            height: 100%;
-            background-color: var(--milktea) !important;
-            font-size: 2rem;
-            border-radius: 15px;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-            display: none; 
-        }
-
-        .coupon-card {
-            background-color: var(--card-bg); border-radius: 15px;
-            padding: 15px 5px; text-align: center; border: 1.5px solid transparent;
-            display: flex; flex-direction: column; justify-content: center;
-            transition: 0.3s;
-            min-width: 0;
-        }
-        
-        .coupon-card.best { border-color: var(--gold); position: relative; }
-        .best-tag {
-            font-size: 0.6rem; color: var(--gold);
-            border: 1px solid var(--gold); border-radius: 10px;
-            padding: 2px 8px; align-self: center; margin-bottom: 5px;
-        }
-
-        .coupon-name { font-size: 0.75rem; color: var(--gold); font-weight: bold; }
-        .coupon-price { font-size: 1.4rem; color: var(--text-main); font-weight: bold; }
-        .coupon-save { font-size: 0.7rem; color: var(--gold); height: 1rem; }
-        .coupon-desc { font-size: 0.6rem; color: var(--text-main); opacity: 0.7; }
-
-        .tooltip-area { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--gold); display: none; }
-        .tooltip-text { color: var(--text-main); font-size: 0.85rem; border-left: 3px solid var(--milktea); padding-left: 10px; }
-        .init-view { text-align: center; color: var(--gold); margin-top: 30px; }
-
-        .promo-text {
-            color: var(--text-main);
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-        .promo-btn {
-            display: inline-block;
-            background-color: var(--milktea);
-            color: #fff;
-            text-decoration: none;
-            padding: 8px 25px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            transition: 0.3s;
-            box-shadow: 0 4px 10px var(--shadow);
-        }
+        .promo-text { color: var(--text-main); font-size: 0.85rem; margin-bottom: 12px; line-height: 1.4; }
+        .promo-btn { display: inline-block; background-color: var(--milktea); color: #fff; text-decoration: none; padding: 8px 25px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 10px var(--shadow); }
     </style>
 </head>
-<body>
+<body id="top">
 
 <div class="theme-switch-wrap">
     <button class="theme-btn" onclick="toggleTheme()">◐</button>
 </div>
 
+<div class="nav-buttons-wrap">
+    <button class="theme-btn" onclick="scrollToTop()">▲</button>
+    <button class="theme-btn" onclick="scrollToBottom()">▼</button>
+</div>
+
 <div class="app-container">
     <div class="display-area">
-        <div class="label">書本售價</div>
-        <div><span class="price-symbol">$</span><span id="displayVal" class="price-val">0</span></div>
+        <div class="label">輸入書本原價</div>
+        <div>
+            <span class="price-symbol">$</span>
+            <span id="displayVal" class="price-val">0</span>
+        </div>
     </div>
 
     <div class="keypad">
-        <button class="key key-n7" onclick="press('7')">7</button>
-        <button class="key key-n8" onclick="press('8')">8</button>
-        <button class="key key-n9" onclick="press('9')">9</button>
-        <button class="key key-n4" onclick="press('4')">4</button>
-        <button class="key key-n5" onclick="press('5')">5</button>
-        <button class="key key-n6" onclick="press('6')">6</button>
-        <button class="key key-n1" onclick="press('1')">1</button>
-        <button class="key key-n2" onclick="press('2')">2</button>
-        <button class="key key-n3" onclick="press('3')">3</button>
-        <button class="key key-n0" onclick="press('0')">0</button>
-        <button class="key key-n00" onclick="press('00')">00</button>
-        <button class="key key-bk" style="color: var(--gold);" onclick="back()">⌫</button>
+        <button class="key" onclick="press('7')">7</button>
+        <button class="key" onclick="press('8')">8</button>
+        <button class="key" onclick="press('9')">9</button>
+        <button class="key" style="color: var(--gold);" onclick="back()">⌫</button>
+
+        <button class="key" onclick="press('4')">4</button>
+        <button class="key" onclick="press('5')">5</button>
+        <button class="key" onclick="press('6')">6</button>
         <button class="key key-c" onclick="cls()">C</button>
+
+        <button class="key" onclick="press('1')">1</button>
+        <button class="key" onclick="press('2')">2</button>
+        <button class="key" onclick="press('3')">3</button>
+        <button class="key key-calc" id="btnAdd" onclick="addToCart()">加入<br>清單</button>
+
+        <button class="key" onclick="press('0')">0</button>
+        <button class="key" onclick="press('00')">00</button>
+        <button class="key key-star" onclick="setCustomDiscount()">*</button>
     </div>
 
-    <div id="initInfo" class="init-view">點擊數字或鍵盤輸入</br>領書額度上限訂為10點</br>(滿0.6進位門檻)</div>
-    <div id="results" class="results-grid"></div>
-    <div id="tooltip" class="tooltip-area"><div id="bestNote" class="tooltip-text"></div></div>
+    <div id="cartArea" class="summary-box" style="display: none;">
+        <div class="summary-header">
+            <span>折扣明細 (按推薦序排列)</span>
+            <span id="bookCount">0 本</span>
+        </div>
+        <div class="summary-notice">-領書額度不適用於部分書籍／套書。</br>-目前領書點數上限訂為10點。</div>
+        
+        <div id="cartItems"></div>
+        
+        <div class="total-section">
+            <div class="total-layout">
+                <div class="total-left">
+                    <div id="batchStatus" class="batch-status">當前方案：推薦方案</div>
+                </div>
+                
+                <div class="total-right">
+                    <div class="batch-control">
+                        <span class="batch-label">一鍵套用</span>
+                        <select id="batchSelect" class="batch-select" onchange="batchApplyDiscount(this.value)">
+                            <option value="">請選擇...</option>
+                            <option value="auto">推薦方案</option>
+                            <option value="70off">7折</option>
+                            <option value="75off">75折</option>
+                            <option value="80off">8折</option>
+                            <option id="optCustom" value="custom" style="display:none;">自訂折扣</option>
+                        </select>
+                    </div>
+
+                    <div class="total-amount-wrap">
+                        <span class="total-label">總計金額</span>
+                        <span class="total-symbol">$</span>
+                        <span id="totalAmount" class="total-amount">0</span>
+                    </div>
+                    
+                    <div class="total-sub-info">
+                        合計原價：$<span id="totalOriginal">0</span> | 共省下：$<span id="totalSaved">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="initInfo" class="init-view">
+        <div style="font-size: 0.9rem;">輸入金額後「加入清單」<br>點擊「*」可設定自訂折扣</div>
+    </div>
 </div>
 
-<div class="promo-container">
+<div class="promo-container" id="bottom">
     <div class="promo-text">喜歡這個計算機的話，<br>歡迎用 AP 連結小小鼓勵我喔❤</div>
     <a href="https://moo.im/a/clmtBW" target="_blank" class="promo-btn">AP 連結</a>
 </div>
 
 <script>
     let currentInput = "0";
+    let cart = [];
+    let customDiscountRate = null;
+    let isPrompting = false;
+    let currentGlobalType = "auto"; 
     const COST_PER_POINT = 166.5;
-    const MAX_CREDITS = 10;
 
-    // 鍵盤監聽
     window.addEventListener('keydown', function(e) {
+        if (isPrompting) return;
         if (e.key >= '0' && e.key <= '9') press(e.key);
         else if (e.key === 'Backspace') back();
-        else if (e.key.toLowerCase() === 'c' || e.key === 'Escape' || e.key === 'Delete') cls();
+        else if (e.key === 'Enter') addToCart();
+        else if (e.key === 'Escape' || e.key === 'Delete') cls();
+        else if (e.key === '*') setCustomDiscount();
     });
 
     function toggleTheme() {
@@ -224,98 +341,235 @@
         body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
     }
 
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollToBottom() {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
     function press(n) {
         if (currentInput === "0") currentInput = n;
         else if (currentInput.length < 6) currentInput += n;
         update();
-        calculate();
     }
 
-    function back() {
-        currentInput = currentInput.slice(0, -1);
-        if (currentInput === "") currentInput = "0";
-        update();
-        calculate();
+    function cls() { 
+        currentInput = "0"; cart = [];
+        customDiscountRate = null;
+        currentGlobalType = "auto";
+        update(); renderCart();
     }
 
-    function cls() {
-        currentInput = "0"; update();
-        document.getElementById('results').style.display = 'none';
-        document.getElementById('tooltip').style.display = 'none';
-        document.getElementById('initInfo').style.display = 'block';
+    function back() { 
+        currentInput = currentInput.slice(0, -1); 
+        if (currentInput === "") currentInput = "0"; 
+        update(); 
     }
 
     function update() { document.getElementById('displayVal').innerText = currentInput; }
 
-    function customRound(val) {
-        const integerPart = Math.floor(val);
-        const decimalPart = val - integerPart;
-        return decimalPart >= 0.59999 ? integerPart + 1 : integerPart;
+    function setCustomDiscount() {
+        isPrompting = true;
+        let val = prompt("請輸入自訂折扣 (例如: 9 代表 9折，65 代表 65折)\n\n規定：只能輸入 99 以內的數字。\n輸入 0 或取消則移除自訂折扣。\n\n自訂折扣將套至清單內所有書籍，數字可隨時更改，但無法單一套用。\n\n取消自訂後，若有套用「自訂折扣」的書，則該書將會跳回預設選項。\n若不想跳掉已選好的配置，請在取消前先檢查。", customDiscountRate ? (customDiscountRate < 1 && (customDiscountRate*100)%10 === 0 ? customDiscountRate * 10 : customDiscountRate * 100) : "");
+        
+        if (val === null || val === "" || parseFloat(val) === 0) {
+            // --- 修正處：取消自訂折扣時的邏輯 ---
+            customDiscountRate = null;
+            document.getElementById('optCustom').style.display = 'none';
+            alert("已移除自訂折扣");
+
+            // 遍歷所有書本，如果該書原本是選「自訂折扣」，才幫它跳回推薦（最便宜）選項
+            // 其他原本手動選好的 (如 7折、折50) 則維持不動
+            cart.forEach((book, idx) => {
+                if (book.selectedId === 'custom') {
+                    const sorted = getSortedDiscounts(book.orig);
+                    cart[idx].selectedId = sorted[0].id;
+                }
+            });
+            
+            // 設為 mixed 模式，避免觸發全域 auto 的重新計算
+            currentGlobalType = 'mixed'; 
+        } else {
+            let num = parseFloat(val);
+            if (num > 99) {
+                alert("錯誤：只能輸入 99 以內的數字，請重新輸入。");
+                isPrompting = false;
+                return setCustomDiscount();
+            }
+
+            if (num >= 10) num = num / 100;
+            else if (num >= 1 && num < 10) num = num / 10;
+            customDiscountRate = num;
+            document.getElementById('optCustom').style.display = 'block';
+            // 設定完新折扣後，維持現狀不變，讓使用者手動去選或用一鍵套用
+        }
+        isPrompting = false;
+        renderCart(); 
     }
 
-    function calculate() {
-        const p = parseInt(currentInput);
-        if (p === 0 || isNaN(p)) { cls(); return; }
+    function batchApplyDiscount(type) {
+        if (!type || cart.length === 0) return;
+        currentGlobalType = type;
+        cart.forEach((book, idx) => {
+            const sorted = getSortedDiscounts(book.orig);
+            if (type === 'auto') {
+                cart[idx].selectedId = sorted[0].id;
+            } else {
+                const target = sorted.find(opt => opt.id === type);
+                if (target && target.isPossible) {
+                    cart[idx].selectedId = type;
+                }
+            }
+        });
+        renderCart();
+        document.getElementById('batchSelect').value = "";
+    }
 
-        document.getElementById('initInfo').style.display = 'none';
-        document.getElementById('results').style.display = 'grid';
-        document.getElementById('tooltip').style.display = 'block';
+    function updateBatchStatusText() {
+        const statusDiv = document.getElementById('batchStatus');
+        if (!statusDiv) return;
 
-        const pointsNeeded = Math.ceil(p / 250);
-        const creditCost = pointsNeeded * COST_PER_POINT;
+        const typeMap = {
+            'auto': '推薦方案',
+            '70off': '7折',
+            '75off': '75折',
+            '80off': '8折',
+            'custom': '自訂折扣',
+            'mixed': '自訂組合 (已手動調整)'
+        };
 
-        const schemes = [
-            { id: "fixed250", name: "滿250折50", threshold: 250, calc: (p) => p - 50, desc: "滿$250可用" },
-            { id: "fixed150", name: "滿150折30", threshold: 150, calc: (p) => p - 30, desc: "滿$150可用" },
-            { id: "fixed100", name: "滿100折25", threshold: 100, calc: (p) => p - 25, desc: "滿$100可用" },
-            { id: "unlimited50", name: "不限額折50", threshold: 0, calc: (p) => Math.max(0, p - 50), desc: "不限金額折$50" },
-            { id: "off70", name: "7折券", threshold: 0, calc: (p) => p * 0.7, desc: "7折優惠券" },
-            { id: "off75", name: "75折券", threshold: 0, calc: (p) => p * 0.75, desc: "3本以上75折" },
-            { id: "off80", name: "8折券", threshold: 0, calc: (p) => p * 0.8, desc: "不限金額8折" },
-            { 
-                id: "credit", 
-                name: "領書額度", 
-                threshold: 0, 
-                isValid: pointsNeeded <= MAX_CREDITS, 
-                calc: (p) => creditCost, 
-                desc: `消耗 ${pointsNeeded} 點` 
-            },
-            { id: "original", name: "原價", threshold: 0, calc: (p) => p, desc: "無折扣" }
+        statusDiv.innerText = `當前方案：${typeMap[currentGlobalType] || '推薦方案'}`;
+    }
+
+    function getSortedDiscounts(p) {
+        const points = Math.ceil(p / 250);
+        let allOptions = [
+            { id: 'off50', name: "折50", final: Math.max(0, p - 50), threshold: 0 },
+            { id: '250-50', name: "250-50", final: p - 50, threshold: 250 },
+            { id: '150-30', name: "150-30", final: p - 30, threshold: 150 },
+            { id: '100-25', name: "100-25", final: p - 25, threshold: 100 },
+            { id: '70off', name: "7折", final: p * 0.7, threshold: 0 },
+            { id: '75off', name: "3本75折", final: p * 0.75, threshold: 0 },
+            { id: '80off', name: "8折", final: p * 0.8, threshold: 0 },
+            { id: 'none', name: "原價", final: p, threshold: 0 }
         ];
 
-        let activeSchemes = schemes
-            .map(s => {
-                const isActive = p >= s.threshold && (s.id !== 'credit' || s.isValid);
-                const rawPrice = isActive ? s.calc(p) : p;
-                const finalPrice = customRound(rawPrice);
-                return {
-                    ...s,
-                    isActive: isActive,
-                    finalPrice: finalPrice,
-                    save: p - finalPrice
-                };
-            })
-            .filter(s => s.isActive);
+        if (points <= 10) {
+            allOptions.push({ id: 'credit', name: "領書額度", final: points * COST_PER_POINT, threshold: 0, sub: `(${points}點)` });
+        }
 
-        // 排序：最終金額由低到高排列
-        activeSchemes.sort((a, b) => a.finalPrice - b.finalPrice);
+        if (customDiscountRate !== null) {
+            let displayLabel = customDiscountRate * 100;
+            if (displayLabel % 10 === 0) displayLabel = displayLabel / 10;
+            allOptions.push({ id: 'custom', name: `${displayLabel}折(自訂)`, final: p * customDiscountRate, threshold: 0 });
+        }
 
-        const resDiv = document.getElementById('results');
-        resDiv.innerHTML = activeSchemes.map((s, i) => {
-            const isBest = i === 0;
+        const optionsWithStatus = allOptions.map(opt => ({ ...opt, isPossible: p >= opt.threshold }));
+        return optionsWithStatus.sort((a, b) => {
+            if (a.isPossible !== b.isPossible) return b.isPossible - a.isPossible;
+            return a.final - b.final;
+        });
+    }
+
+    function addToCart() {
+        const p = parseInt(currentInput);
+        if (p <= 0) return;
+        const sortedOptions = getSortedDiscounts(p);
+        
+        let targetId = sortedOptions[0].id;
+        if (currentGlobalType !== 'auto' && currentGlobalType !== 'mixed') {
+            const target = sortedOptions.find(opt => opt.id === currentGlobalType);
+            if (target && target.isPossible) targetId = currentGlobalType;
+            else currentGlobalType = 'mixed';
+        } else if (currentGlobalType === 'auto') {
+            targetId = sortedOptions[0].id;
+        }
+
+        cart.push({ orig: p, selectedId: targetId });
+        currentInput = "0";
+        update();
+        renderCart();
+    }
+
+    function changeDiscount(bookIdx, optId, isPossible) {
+        if (!isPossible) return;
+        if (cart[bookIdx].selectedId !== optId) {
+            cart[bookIdx].selectedId = optId;
+            currentGlobalType = 'mixed';
+        }
+        renderCart();
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function customRound(num) {
+        const decimal = num - Math.floor(num);
+        return decimal >= 0.6 ? Math.ceil(num) : Math.floor(num);
+    }
+
+    function renderCart() {
+        const cartArea = document.getElementById('cartArea');
+        const itemsDiv = document.getElementById('cartItems');
+        const initInfo = document.getElementById('initInfo');
+        const totalAmountSpan = document.getElementById('totalAmount');
+        const totalOriginalSpan = document.getElementById('totalOriginal');
+        const totalSavedSpan = document.getElementById('totalSaved');
+        const bookCountSpan = document.getElementById('bookCount');
+
+        if (cart.length === 0) {
+            cartArea.style.display = 'none';
+            initInfo.style.display = 'block';
+            return;
+        }
+
+        cartArea.style.display = 'block';
+        initInfo.style.display = 'none';
+        
+        let totalFinal = 0;
+        let totalOriginal = 0;
+
+        itemsDiv.innerHTML = cart.map((book, bIdx) => {
+            const sortedOptions = getSortedDiscounts(book.orig);
+            let selected = sortedOptions.find(opt => opt.id === book.selectedId);
+            if (!selected) {
+                selected = sortedOptions[0];
+                cart[bIdx].selectedId = selected.id;
+            }
+            const finalRounded = customRound(selected.final);
+            totalFinal += finalRounded;
+            totalOriginal += book.orig;
+
             return `
-                <div class="coupon-card ${isBest ? 'best' : ''}">
-                    ${isBest ? '<span class="best-tag">最划算</span>' : ''}
-                    <div class="coupon-name">${s.name}</div>
-                    <div class="coupon-price">$${s.finalPrice}</div>
-                    <div class="coupon-save">${s.save > 0 ? '省 $' + s.save : ''}</div>
-                    <div class="coupon-desc">${s.desc}</div>
+                <div class="book-item">
+                    <div class="book-top-row">
+                        <div>
+                            <div class="book-orig">書本原價 $${book.orig}</div>
+                            <div class="book-final-price">$${finalRounded}</div>
+                        </div>
+                        <span class="remove-btn" onclick="removeFromCart(${bIdx})">×</span>
+                    </div>
+                    <div class="discount-selector">
+                        ${sortedOptions.map((opt) => `
+                            <div class="discount-opt ${cart[bIdx].selectedId === opt.id ? 'active' : ''} ${!opt.isPossible ? 'disabled' : ''}" 
+                                 onclick="changeDiscount(${bIdx}, '${opt.id}', ${opt.isPossible})">
+                                ${opt.name}${opt.sub || ''}
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             `;
         }).join('');
 
-        const best = activeSchemes[0];
-        document.getElementById('bestNote').innerText = best ? `${best.name}最划算，換算成本約 $${best.finalPrice}。` : "";
+        bookCountSpan.innerText = `${cart.length} 本`;
+        totalAmountSpan.innerText = totalFinal.toLocaleString();
+        totalOriginalSpan.innerText = totalOriginal.toLocaleString();
+        totalSavedSpan.innerText = (totalOriginal - totalFinal).toLocaleString();
+        updateBatchStatusText();
     }
 </script>
 </body>
