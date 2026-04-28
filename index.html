@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Readmoo折扣計算機(單本) 2.2.3</title>
+    <title>Readmoo折扣計算機(單本) 2.2.4</title>
     <style>
         :root {
+            /* 強制瀏覽器基礎元件遵循淺色模式 */
+            color-scheme: light;
             --page-bg: #e8e6df;
             --app-bg: #f8f7f2;
             --display-bg: #f2f1eb;
@@ -19,6 +21,8 @@
         }
 
         [data-theme="dark"] {
+            /* 強制瀏覽器基礎元件遵循深色模式 */
+            color-scheme: dark;
             --page-bg: #1a1b1d;
             --app-bg: #212224;
             --display-bg: #2a2c2f;
@@ -254,6 +258,28 @@
     const COST_PER_POINT = 166.5;
     const MAX_CREDITS = 10;
 
+    // --- 主題偵測與切換邏輯 ---
+    function applySystemTheme() {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setTheme(prefersDark ? 'dark' : 'light');
+    }
+
+    function setTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        document.body.style.colorScheme = theme;
+    }
+
+    function toggleTheme() {
+        const current = document.body.getAttribute('data-theme');
+        setTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    // 初始化主題偵測
+    applySystemTheme();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        setTheme(e.matches ? 'dark' : 'light');
+    });
+
     // 鍵盤監聽：修正判斷邏輯
     window.addEventListener('keydown', function(e) {
         // 數字鍵
@@ -269,12 +295,6 @@
             cls();
         }
     });
-
-    function toggleTheme() {
-        const body = document.body;
-        const current = body.getAttribute('data-theme');
-        body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-    }
 
     function press(n) {
         // 限制最多 6 位數
